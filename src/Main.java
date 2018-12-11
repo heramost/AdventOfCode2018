@@ -25,46 +25,29 @@ public class Main {
             }
         }
         int maxDistanceRoundedUp = (int) Math.ceil(maxDistance);
-        Pair<Point, Double>[][] table = new Pair[maxDistanceRoundedUp][maxDistanceRoundedUp];
+        Double[][] table = new Double[maxDistanceRoundedUp][maxDistanceRoundedUp];
         for (int i = 0; i < maxDistanceRoundedUp; ++i) {
             for (int j = 0; j < maxDistanceRoundedUp; ++j) {
                 for (Point point : points) {
                     double currentDistance = getDistance(point, new Point(i, j));
-                    if (table[i][j] == null || table[i][j].getValue() > currentDistance) {
-                        table[i][j] = new Pair(point, currentDistance);
-                    } else {
-                        if (table[i][j] != null && Math.abs(table[i][j].getValue() - currentDistance) < 0.003) {
-                            table[i][j] = new Pair(null, currentDistance);
-                        }
+                    Double sumOfDistance = Optional.ofNullable(table[i][j]).orElse(0d) + currentDistance;
+                    table[i][j] = sumOfDistance;
+                    if (sumOfDistance > 10000) {
+                        continue;
                     }
                 }
             }
         }
 
+        int c = 0;
         for (int i = 0; i < maxDistanceRoundedUp; ++i) {
             for (int j = 0; j < maxDistanceRoundedUp; ++j) {
-                if (i == 0 || i == maxDistanceRoundedUp - 1 || j == 0 || j == maxDistanceRoundedUp - 1) {
-                    points.remove(table[i][j].getKey());
-                    table[i][j] = null;
+                if (table[i][j] < 10000) {
+                    ++c;
                 }
             }
         }
-
-        Map<Point, Integer> occurences = new HashMap<>();
-        for (int i = 0; i < maxDistanceRoundedUp; ++i) {
-            for (int j = 0; j < maxDistanceRoundedUp; ++j) {
-                if (table[i][j] != null) {
-                    Point point = table[i][j].getKey();
-                    if (points.contains(point)) {
-                        int count = occurences.getOrDefault(point, 0);
-                        occurences.put(point, ++count);
-                    }
-                }
-            }
-        }
-        System.out.println(occurences.entrySet().stream()
-        .max(Comparator.comparingInt(Map.Entry::getValue))
-        .orElse(null));
+        System.out.println(c);
     }
 
     private static double getDistance(Point point, Point otherPoint) {
